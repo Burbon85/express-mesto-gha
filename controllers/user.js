@@ -4,7 +4,7 @@ const User = require('../models/user');
 const getUsers = (req, res) => {
   User.find()
     .then((users) => {
-      res.send({ data: users });
+      res.status(200).send({ data: users });
     })
     .catch(() => {
       res.status(500).send({ message: 'Что-то пошло не так' });
@@ -68,8 +68,6 @@ const updateUser = (req, res) => {
     .catch((e) => {
       if (e.name === 'ValidationError') {
         res.status(400).send({ message: 'Неверно заполнены поля' });
-      } else if (e.name === 'CastError') {
-        res.status(400).send({ message: 'Невалидный id пользователя' });
       } else if (e.message === 'User not found') {
         res.status(404).send({ message: 'Пользователь не найден' });
       } else {
@@ -96,8 +94,6 @@ const updateAvatar = (req, res) => {
     .catch((e) => {
       if (e.name === 'ValidationError') {
         res.status(400).send({ message: 'Неверно заполнены поля' });
-      } else if (e.name === 'CastError') {
-        res.status(400).send({ message: 'Невалидный id пользователя' });
       } else if (e.message === 'User not found') {
         res.status(404).send({ message: 'Пользователь не найден' });
       } else {
