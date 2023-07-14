@@ -2,9 +2,9 @@ const http2 = require('node:http2');
 
 const Card = require('../models/card');
 
-const BadRequestError = require('../errors/BadRequestError');
-const NotFoundError = require('../errors/NotFoundError');
-const ServerError = require('../errors/ServerError');
+const BadRequest = http2.constants.HTTP_STATUS_BAD_REQUEST;
+const NotFound = http2.constants.HTTP_STATUS_NOT_FOUND;
+const ServerError = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 const OK = http2.constants.HTTP_STATUS_OK;
 const CREATED = http2.constants.HTTP_STATUS_CREATED;
@@ -30,9 +30,9 @@ const createCard = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        res.status(BadRequestError).send({ message: 'Неверно заполнены поля' });
+        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
       } else {
-        res.status(NotFoundError).send({ message: 'Что-то пошло не так' });
+        res.status(NotFound).send({ message: 'Что-то пошло не так' });
       }
     });
 };
@@ -46,11 +46,11 @@ const deleteCard = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        res.status(BadRequestError).send({ message: 'Неверно заполнены поля' });
+        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
         return;
       }
       if (e.name === 'DocumentNotFoundError') {
-        res.status(NotFoundError).send({ message: 'Карточка с таким id не найдена' });
+        res.status(NotFound).send({ message: 'Карточка с таким id не найдена' });
       } else {
         res.status(ServerError).send({ message: 'Ошибка на сервере' });
       }
@@ -69,9 +69,9 @@ const putLike = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        res.status(BadRequestError).send({ message: 'Неверно заполнены поля' });
+        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
       } else if (e.message === 'Not found') {
-        res.status(NotFoundError).send({ message: 'Карточка с таким id не найдена' });
+        res.status(NotFound).send({ message: 'Карточка с таким id не найдена' });
       } else {
         res.status(ServerError).send({ message: 'Ошибка на сервере' });
       }
@@ -90,9 +90,9 @@ const deleteLike = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        res.status(BadRequestError).send({ message: 'Неверно заполнены поля' });
+        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
       } else if (e.message === 'Not found') {
-        res.status(NotFoundError).send({ message: 'Карточка с таким id не найдена' });
+        res.status(NotFound).send({ message: 'Карточка с таким id не найдена' });
       } else {
         res.status(ServerError).send({ message: 'Ошибка на сервере' });
       }

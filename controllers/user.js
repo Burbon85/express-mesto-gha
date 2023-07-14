@@ -2,9 +2,9 @@ const http2 = require('node:http2');
 
 const User = require('../models/user');
 
-const BadRequestError = require('../errors/BadRequestError');
-const NotFoundError = require('../errors/NotFoundError');
-const ServerError = require('../errors/ServerError');
+const BadRequest = http2.constants.HTTP_STATUS_BAD_REQUEST;
+const NotFound = http2.constants.HTTP_STATUS_NOT_FOUND;
+const ServerError = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 const OK = http2.constants.HTTP_STATUS_OK;
 const CREATED = http2.constants.HTTP_STATUS_CREATED;
@@ -32,11 +32,11 @@ const getUser = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        res.status(BadRequestError).send({ message: 'Невалидный id пользователя' });
+        res.status(BadRequest).send({ message: 'Невалидный id пользователя' });
         return;
       }
       if (e.message === 'Not found') {
-        res.status(NotFoundError).send({ message: 'Пользователь не найден' });
+        res.status(NotFound).send({ message: 'Пользователь не найден' });
       } else {
         res.status(ServerError).send({ message: 'Что-то пошло не так' });
       }
@@ -52,7 +52,7 @@ const createUser = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        res.status(BadRequestError).send({ message: 'Неверно заполнены поля' });
+        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
       } else {
         res.status(ServerError).send({ message: 'Что-то пошло не так' });
       }
@@ -76,9 +76,9 @@ const updateUser = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        res.status(BadRequestError).send({ message: 'Неверно заполнены поля' });
+        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
       } else if (e.message === 'User not found') {
-        res.status(NotFoundError).send({ message: 'Пользователь не найден' });
+        res.status(NotFound).send({ message: 'Пользователь не найден' });
       } else {
         res.status(ServerError).send({ message: 'Что-то пошло не так' });
       }
@@ -102,9 +102,9 @@ const updateAvatar = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        res.status(BadRequestError).send({ message: 'Неверно заполнены поля' });
+        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
       } else if (e.message === 'User not found') {
-        res.status(NotFoundError).send({ message: 'Пользователь не найден' });
+        res.status(NotFound).send({ message: 'Пользователь не найден' });
       } else {
         res.status(ServerError).send({ message: 'Что-то пошло не так' });
       }
