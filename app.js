@@ -11,12 +11,12 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 });
 
 // импортируем роутеры
-const userRouter = require('./routes/user');
-const cardRouter = require('./routes/card');
+const routes = require('./routes');
+
+const NotFoundError = require('./errors/NotFoundError');
 
 app.use(express.json());
-app.use(userRouter);
-app.use(cardRouter);
+app.use('/', routes);
 
 app.use((req, res, next) => {
   req.user = {
@@ -26,7 +26,7 @@ app.use((req, res, next) => {
 });
 
 app.use('*', (req, res) => {
-  res.status(404).send({ message: 'URL не существует' });
+  res.status(NotFoundError).send({ message: 'URL не существует' });
 });
 
 app.listen(PORT, () => {
