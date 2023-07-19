@@ -4,25 +4,23 @@ const Card = require('../models/card');
 
 const BadRequest = http2.constants.HTTP_STATUS_BAD_REQUEST;
 const NotFound = http2.constants.HTTP_STATUS_NOT_FOUND;
-const ServerError = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+// const ServerError = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 const OK = http2.constants.HTTP_STATUS_OK;
 const CREATED = http2.constants.HTTP_STATUS_CREATED;
 
 // Информация по всем карточкам
-const getAllCards = (req, res) => {
+const getAllCards = (req, res, next) => {
   Card.find()
     .populate(['owner', 'likes'])
     .then((cards) => {
       res.status(OK).send({ data: cards });
     })
-    .catch(() => {
-      res.status(ServerError).send({ message: 'Что-то пошло не так' });
-    });
+    .catch(next);
 };
 
 // Создание карточки
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
@@ -30,15 +28,13 @@ const createCard = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
-      } else {
-        res.status(NotFound).send({ message: 'Что-то пошло не так' });
-      }
+        next(new BadRequest('Неверно заполнены поля'));
+      } next(e);
     });
 };
 
 // Удаление карточки
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   Card.findByIdAndDelete(req.params.cardId)
     .orFail()
     .then((card) => {
@@ -46,19 +42,18 @@ const deleteCard = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
+        next(new BadRequest('Неверно заполнены поля'));
         return;
       }
       if (e.name === 'DocumentNotFoundError') {
-        res.status(NotFound).send({ message: 'Карточка с таким id не найдена' });
-      } else {
-        res.status(ServerError).send({ message: 'Ошибка на сервере' });
-      }
+        next(new NotFound('Карточка с таким id не найдена'));
+        return;
+      } next(e);
     });
 };
 
 // Постановка лайков
-const putLike = (req, res) => {
+const putLike = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .populate(['owner', 'likes'])
     .orFail(() => {
@@ -69,17 +64,18 @@ const putLike = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
-      } else if (e.message === 'Not found') {
-        res.status(NotFound).send({ message: 'Карточка с таким id не найдена' });
-      } else {
-        res.status(ServerError).send({ message: 'Ошибка на сервере' });
+        next(new BadRequest('Неверно заполнены поля'));
+        return;
       }
+      if (e.name === 'DocumentNotFoundError') {
+        next(new NotFound('Карточка с таким id не найдена'));
+        return;
+      } next(e);
     });
 };
 
 // Удаление лайков
-const deleteLike = (req, res) => {
+const deleteLike = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .populate(['owner', 'likes'])
     .orFail(() => {
@@ -90,12 +86,13 @@ const deleteLike = (req, res) => {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        res.status(BadRequest).send({ message: 'Неверно заполнены поля' });
-      } else if (e.message === 'Not found') {
-        res.status(NotFound).send({ message: 'Карточка с таким id не найдена' });
-      } else {
-        res.status(ServerError).send({ message: 'Ошибка на сервере' });
+        next(new BadRequest('Неверно заполнены поля'));
+        return;
       }
+      if (e.name === 'DocumentNotFoundError') {
+        next(new NotFound('Карточка с таким id не найдена'));
+        return;
+      } next(e);
     });
 };
 
