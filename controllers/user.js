@@ -13,6 +13,8 @@ const CREATED = http2.constants.HTTP_STATUS_CREATED;
 
 const SOLT_ROUNDS = 10; // соль
 
+const { generateToken } = require('../utils/token');
+
 // Данные пользователей
 const getUsers = (req, res, next) => {
   User.find()
@@ -131,6 +133,18 @@ const updateAvatar = (req, res, next) => {
     });
 };
 
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      res.send({
+        token: generateToken({ _id: user._id }),
+      });
+    })
+    .catch(next);
+};
+
 module.exports = {
-  getUsers, getUserMe, getUser, createUser, updateUser, updateAvatar,
+  getUsers, getUserMe, getUser, createUser, updateUser, updateAvatar, login,
 };
