@@ -4,6 +4,7 @@ const Card = require('../models/card');
 
 const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 const OK = http2.constants.HTTP_STATUS_OK;
 const CREATED = http2.constants.HTTP_STATUS_CREATED;
@@ -34,18 +35,20 @@ const createCard = (req, res, next) => {
 
 // Удаление карточки
 const deleteCard = (req, res, next) => {
-  Card.findByIdAndDelete(req.params.cardId)
-    .orFail()
+  Card.findById(req.params.cardId)
     .then((card) => {
-      res.status(OK).send({ data: card });
+      if (!card) {
+        throw new NotFoundError('Такой карточки нет');
+      }
+      if (`${card.owner}` !== req.user._id) {
+        next(new ForbiddenError('Нет доступа на удаление чужой карточки'));
+      }
+      return Card.deleteOne()
+        .then(() => res.status(OK).send({ data: card }));
     })
     .catch((e) => {
       if (e.name === 'CastError') {
         next(new BadRequestError('Неверно заполнены поля'));
-        return;
-      }
-      if (e.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Карточка с таким id не найдена'));
         return;
       } next(e);
     });
@@ -65,10 +68,6 @@ const putLike = (req, res, next) => {
       if (e.name === 'CastError') {
         next(new BadRequestError('Неверно заполнены поля'));
         return;
-      }
-      if (e.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Карточка с таким id не найдена'));
-        return;
       } next(e);
     });
 };
@@ -86,10 +85,6 @@ const deleteLike = (req, res, next) => {
     .catch((e) => {
       if (e.name === 'CastError') {
         next(new BadRequestError('Неверно заполнены поля'));
-        return;
-      }
-      if (e.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Карточка с таким id не найдена'));
         return;
       } next(e);
     });

@@ -54,6 +54,7 @@ app.use((e, req, res, next) => {
         ? 'На сервере произошла ошибка'
         : message,
     });
+  console.log(e);
   next();
 });
 
