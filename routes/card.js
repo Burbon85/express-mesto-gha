@@ -28,7 +28,7 @@ router.get('/', getAllCards);
 
 router.delete('/:cardId', validationCreateCard, deleteCard);
 
-router.post('/', express.json(), validationCreateCard, createCard);
+router.post('/', validationCreateCard, createCard);
 
 router.put('/:cardId/likes', validationCard, putLike);
 

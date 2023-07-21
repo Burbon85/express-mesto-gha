@@ -4,9 +4,9 @@ const bcrypt = require('bcrypt');
 
 const User = require('../models/user');
 
-const BadRequest = http2.constants.HTTP_STATUS_BAD_REQUEST;
-const NotFound = http2.constants.HTTP_STATUS_NOT_FOUND;
-const ServerError = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ServerError = require('../errors/ServerError');
 
 const OK = http2.constants.HTTP_STATUS_OK;
 const CREATED = http2.constants.HTTP_STATUS_CREATED;
@@ -35,19 +35,16 @@ const getUserMe = (req, res, next) => {
 const getUser = (req, res, next) => {
   const { userid } = req.params;
   User.findById(userid)
-    .orFail(() => {
-      throw new Error('Not found');
-    })
     .then((users) => {
       res.status(OK).send({ data: users });
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new BadRequest('Невалидный id пользователя'));
+        next(new BadRequestError('Невалидный id пользователя'));
         return;
       }
       if (e.message === 'Not found') {
-        next(new NotFound('Пользователь не найден'));
+        next(new NotFoundError('Пользователь не найден'));
         return;
       } next(e);
     });
@@ -74,7 +71,7 @@ const createUser = async (req, res, next) => {
     }
   } catch (e) {
     if (e.name === 'ValidationError') {
-      next(new BadRequest('Неверно заполнены поля'));
+      next(new BadRequestError('Неверно заполнены поля'));
       return;
     }
     next(e);
@@ -91,16 +88,16 @@ const updateUser = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       } else {
         res.status(OK).send({ data: user });
       }
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        next(new BadRequest('Неверно заполнены поля'));
+        next(new BadRequestError('Неверно заполнены поля'));
       } else if (e.message === 'User not found') {
-        next(new NotFound('Пользователь не найден'));
+        next(new NotFoundError('Пользователь не найден'));
       } else {
         next(new ServerError('Что-то пошло не так'));
       } next(e);
@@ -117,16 +114,16 @@ const updateAvatar = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        throw new Error('User not found');
+        throw new NotFoundError('User not found');
       } else {
         res.status(OK).send({ data: user });
       }
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        next(new BadRequest('Неверно заполнены поля'));
+        next(new BadRequestError('Неверно заполнены поля'));
       } else if (e.message === 'User not found') {
-        next(new NotFound('Пользователь не найден'));
+        next(new NotFoundError('Пользователь не найден'));
       } else {
         next(new ServerError('Что-то пошло не так'));
       } next(e);

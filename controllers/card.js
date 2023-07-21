@@ -2,9 +2,8 @@ const http2 = require('node:http2');
 
 const Card = require('../models/card');
 
-const BadRequest = http2.constants.HTTP_STATUS_BAD_REQUEST;
-const NotFound = http2.constants.HTTP_STATUS_NOT_FOUND;
-// const ServerError = http2.constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
 
 const OK = http2.constants.HTTP_STATUS_OK;
 const CREATED = http2.constants.HTTP_STATUS_CREATED;
@@ -28,7 +27,7 @@ const createCard = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        next(new BadRequest('Неверно заполнены поля'));
+        next(new BadRequestError('Неверно заполнены поля'));
       } next(e);
     });
 };
@@ -42,11 +41,11 @@ const deleteCard = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new BadRequest('Неверно заполнены поля'));
+        next(new BadRequestError('Неверно заполнены поля'));
         return;
       }
       if (e.name === 'DocumentNotFoundError') {
-        next(new NotFound('Карточка с таким id не найдена'));
+        next(new NotFoundError('Карточка с таким id не найдена'));
         return;
       } next(e);
     });
@@ -57,18 +56,18 @@ const putLike = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
     .populate(['owner', 'likes'])
     .orFail(() => {
-      throw new Error('Not found');
+      throw new NotFoundError('Not found');
     })
     .then((card) => {
       res.status(OK).send({ data: card });
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new BadRequest('Неверно заполнены поля'));
+        next(new BadRequestError('Неверно заполнены поля'));
         return;
       }
       if (e.name === 'DocumentNotFoundError') {
-        next(new NotFound('Карточка с таким id не найдена'));
+        next(new NotFoundError('Карточка с таким id не найдена'));
         return;
       } next(e);
     });
@@ -79,18 +78,18 @@ const deleteLike = (req, res, next) => {
   Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
     .populate(['owner', 'likes'])
     .orFail(() => {
-      throw new Error('Not found');
+      throw new NotFoundError('Not found');
     })
     .then((card) => {
       res.status(OK).send({ data: card });
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new BadRequest('Неверно заполнены поля'));
+        next(new BadRequestError('Неверно заполнены поля'));
         return;
       }
       if (e.name === 'DocumentNotFoundError') {
-        next(new NotFound('Карточка с таким id не найдена'));
+        next(new NotFoundError('Карточка с таким id не найдена'));
         return;
       } next(e);
     });
