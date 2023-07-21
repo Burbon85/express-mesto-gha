@@ -7,6 +7,7 @@ const User = require('../models/user');
 const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
 const ServerError = require('../errors/ServerError');
+const ConflictError = require('../errors/ConflictError');
 
 const OK = http2.constants.HTTP_STATUS_OK;
 const CREATED = http2.constants.HTTP_STATUS_CREATED;
@@ -72,6 +73,10 @@ const createUser = async (req, res, next) => {
   } catch (e) {
     if (e.name === 'ValidationError') {
       next(new BadRequestError('Неверно заполнены поля'));
+      return;
+    }
+    if (e.code === 11000) {
+      next(new ConflictError('Пользователь уже существует'));
       return;
     }
     next(e);
